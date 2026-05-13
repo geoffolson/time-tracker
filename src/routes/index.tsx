@@ -118,34 +118,62 @@ function Home() {
           </CardFooter>
         </Card>
       </div>
-      <Card className='overflow-y-auto h-full'>
-        <CardHeader>
-          <CardTitle>Today's Time Entries</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="flex flex-col gap-2 p-0">
-            {timeEntriesQuery.data?.map((entry) => (
-              <li
-                key={entry.id}
-                style={{
-                  backgroundColor: tasksMap[entry.taskId].color || 'black',
-                }}
-                className="p-2 rounded"
-              >
-                Task: {tasksMap[entry.taskId].name || entry.taskId}, Start:{' '}
-                {new Date(entry.startTime).toLocaleString()}, End:{' '}
-                {entry.endTime
-                  ? new Date(entry.endTime).toLocaleString()
-                  : 'In Progress'}{' '}
-                Duration:{' '}
-                {entry.endTime
-                  ? formatDuration(entry.endTime - entry.startTime)
-                  : 'In Progress'}
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+      <div className="h-full flex gap-4 overflow-hidden">
+        <Card className="h-full">
+          <CardHeader>
+            <CardTitle>Today's Time Entries</CardTitle>
+          </CardHeader>
+          <CardContent className="overflow-y-auto">
+            <ul className="flex flex-col gap-2 p-0">
+              {timeEntriesQuery.data?.map((entry) => (
+                <li
+                  key={entry.id}
+                  style={{
+                    backgroundColor: tasksMap[entry.taskId].color || 'black',
+                  }}
+                  className="p-2 rounded text-shadow-lg"
+                >
+                  {tasksMap[entry.taskId].name || entry.taskId}, Start:{' '}
+                  {new Date(entry.startTime).toLocaleString()}, End:{' '}
+                  {entry.endTime
+                    ? new Date(entry.endTime).toLocaleString()
+                    : 'In Progress'}{' '}
+                  Duration:{' '}
+                  {entry.endTime
+                    ? formatDuration(entry.endTime - entry.startTime)
+                    : 'In Progress'}
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+        <Card className="h-full min-w-sm">
+          <CardHeader>
+            <CardTitle>Today's Aggregates</CardTitle>
+          </CardHeader>
+          <CardContent className="overflow-y-auto">
+            <ul className="flex flex-col gap-2 p-0">
+              {tasksQuery.data.map((task) => {
+                const totalDuration = timeEntriesQuery.data
+                  ?.filter((entry) => entry.taskId === task.id)
+                  .reduce((acc, entry) => {
+                    const endTime = entry.endTime ? entry.endTime : Date.now()
+                    return acc + (endTime - entry.startTime)
+                  }, 0)
+                return (
+                  <li
+                    key={task.id}
+                    style={{ backgroundColor: task.color || 'black' }}
+                    className="p-2 rounded text-shadow-lg"
+                  >
+                    {task.name}: {formatDuration(totalDuration || 0)}
+                  </li>
+                )
+              })}
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
