@@ -74,56 +74,61 @@ function Home() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader>
-            <CardTitle>Create New Task</CardTitle>
-            <CardDescription>
-              Enter a name and select a color, then click "Add Task". Click on a
-              task to start a time entry for that task.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex items-center gap-4">
-            <Field>
-              <FieldLabel>Task Name</FieldLabel>
-              <Input
-                type="text"
-                placeholder="Task Name"
-                className="p-2 border rounded w-full"
-                onChange={(e) => setTaskName(e.target.value)}
-                value={taskName}
-              />
-              <FieldDescription>
-                Provide a unique name for the task
-              </FieldDescription>
-            </Field>
-            <Field>
-              <FieldLabel>Task Color</FieldLabel>
-              <Input
-                type="color"
-                placeholder="Task Color"
-                onChange={(e) => setTaskColor(e.target.value)}
-                value={taskColor}
-              />
-              <FieldDescription>Select a color for the task</FieldDescription>
-            </Field>
-          </CardContent>
-          <CardFooter>
-            <Button
-              onClick={() =>
-                newTaskMutation.mutate(
-                  { name: taskName, color: taskColor },
-                  {
-                    onSuccess: () => {
-                      setTaskName('')
-                      setTaskColor(randomColor())
-                    },
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              newTaskMutation.mutate(
+                { name: taskName, color: taskColor },
+                {
+                  onSuccess: () => {
+                    setTaskName('')
+                    setTaskColor(randomColor())
                   },
-                )
-              }
-              disabled={!taskName || !taskColor || newTaskMutation.isPending}
-            >
-              Add Task
-            </Button>
-          </CardFooter>
+                },
+              )
+            }}
+          >
+            <CardHeader>
+              <CardTitle>Create New Task</CardTitle>
+              <CardDescription>
+                Enter a name and select a color, then click "Add Task". Click on
+                a task to start a time entry for that task.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex items-center gap-4">
+              <Field>
+                <FieldLabel>Task Name</FieldLabel>
+                <Input
+                  type="text"
+                  placeholder="Task Name"
+                  className="p-2 border rounded w-full"
+                  onChange={(e) => setTaskName(e.target.value)}
+                  value={taskName}
+                />
+                <FieldDescription>
+                  Provide a unique name for the task
+                </FieldDescription>
+              </Field>
+              <Field>
+                <FieldLabel>Task Color</FieldLabel>
+                <Input
+                  type="color"
+                  placeholder="Task Color"
+                  onChange={(e) => setTaskColor(e.target.value)}
+                  value={taskColor}
+                />
+                <FieldDescription>Select a color for the task</FieldDescription>
+              </Field>
+            </CardContent>
+            <CardFooter>
+              <Button
+                type="submit"
+                disabled={!taskName || !taskColor || newTaskMutation.isPending}
+              >
+                Add Task
+              </Button>
+            </CardFooter>
+          </form>
         </Card>
       </div>
       <div className="h-full flex gap-4 overflow-hidden">
