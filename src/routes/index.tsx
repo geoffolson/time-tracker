@@ -60,8 +60,8 @@ function Home() {
   return (
     <div className="p-2 h-full w-full max-w-4xl flex flex-col gap-4">
       <h2 className="text-2xl font-bold">Task Tracker</h2>
-      <div className="flex gap-4 w-full">
-        <Card className="w-full">
+      <div className="flex flex-wrap gap-4 w-full">
+        <Card className="w-full min-w-xs grow basis-0 shrink">
           <CardHeader>
             <CardTitle>Tasks</CardTitle>
             <CardDescription>
@@ -170,7 +170,7 @@ function Home() {
             </div>
           </CardContent>
         </Card>
-        <Card className="h-full min-w-sm">
+        <Card className="h-full min-w-xs grow basis-0 shrink">
           <CardHeader>
             <CardTitle>Today's Aggregates</CardTitle>
           </CardHeader>
