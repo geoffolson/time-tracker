@@ -13,14 +13,29 @@ import { formatDuration } from '#/utils'
 import { Button } from '#/components/ui/button'
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '#/components/ui/card'
-import { Field, FieldDescription, FieldLabel } from '#/components/ui/field'
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from '#/components/ui/field'
 import { Input } from '#/components/ui/input'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '#/components/ui/dialog'
 
 export const Route = createFileRoute('/')({ component: Home })
 
@@ -39,10 +54,11 @@ function Home() {
   const newTaskMutation = useMutation(createTaskMutationOptions)
   const [taskName, setTaskName] = useState('')
   const [taskColor, setTaskColor] = useState(randomColor)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   return (
     <div className="p-2 h-full w-full max-w-4xl flex flex-col gap-4">
-      <h2 className="text-2xl font-bold">Time Tracker</h2>
+      <h2 className="text-2xl font-bold">Task Tracker</h2>
       <div className="flex gap-4 w-full">
         <Card className="w-full">
           <CardHeader>
@@ -50,6 +66,86 @@ function Home() {
             <CardDescription>
               Click on a task to start a time entry for that task.
             </CardDescription>
+            <CardAction>
+              <Dialog
+                open={isDialogOpen}
+                onOpenChange={() => {
+                  if (isDialogOpen) {
+                    setTaskName('')
+                    setTaskColor(randomColor())
+                  }
+                  setIsDialogOpen(!isDialogOpen)
+                }}
+              >
+                <DialogTrigger asChild>
+                  <Button size="sm">Add Task</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create a New Task</DialogTitle>
+                    <DialogDescription>
+                      Enter a name and select a color, then click "Add Task".
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      newTaskMutation.mutate(
+                        { name: taskName, color: taskColor },
+                        {
+                          onSuccess: () => {
+                            setTaskName('')
+                            setTaskColor(randomColor())
+                            setIsDialogOpen(false)
+                          },
+                        },
+                      )
+                    }}
+                  >
+                    <FieldGroup>
+                      <Field>
+                        <FieldLabel>Task Name</FieldLabel>
+                        <Input
+                          type="text"
+                          placeholder="Task Name"
+                          className="p-2 border rounded w-full"
+                          onChange={(e) => setTaskName(e.target.value)}
+                          value={taskName}
+                        />
+                        <FieldDescription>
+                          Provide a unique name for the task
+                        </FieldDescription>
+                      </Field>
+                      <Field>
+                        <FieldLabel>Task Color</FieldLabel>
+                        <Input
+                          type="color"
+                          placeholder="Task Color"
+                          onChange={(e) => setTaskColor(e.target.value)}
+                          value={taskColor}
+                        />
+                        <FieldDescription>
+                          Select a color for the task
+                        </FieldDescription>
+                      </Field>
+                    </FieldGroup>
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button variant="outline">Cancel</Button>
+                      </DialogClose>
+                      <Button
+                        type="submit"
+                        disabled={
+                          !taskName || !taskColor || newTaskMutation.isPending
+                        }
+                      >
+                        Add Task
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </CardAction>
           </CardHeader>
           <CardContent>
             <div className="pt-0">
@@ -73,62 +169,31 @@ function Home() {
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              newTaskMutation.mutate(
-                { name: taskName, color: taskColor },
-                {
-                  onSuccess: () => {
-                    setTaskName('')
-                    setTaskColor(randomColor())
-                  },
-                },
-              )
-            }}
-          >
-            <CardHeader>
-              <CardTitle>Create New Task</CardTitle>
-              <CardDescription>
-                Enter a name and select a color, then click "Add Task". Click on
-                a task to start a time entry for that task.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex items-center gap-4">
-              <Field>
-                <FieldLabel>Task Name</FieldLabel>
-                <Input
-                  type="text"
-                  placeholder="Task Name"
-                  className="p-2 border rounded w-full"
-                  onChange={(e) => setTaskName(e.target.value)}
-                  value={taskName}
-                />
-                <FieldDescription>
-                  Provide a unique name for the task
-                </FieldDescription>
-              </Field>
-              <Field>
-                <FieldLabel>Task Color</FieldLabel>
-                <Input
-                  type="color"
-                  placeholder="Task Color"
-                  onChange={(e) => setTaskColor(e.target.value)}
-                  value={taskColor}
-                />
-                <FieldDescription>Select a color for the task</FieldDescription>
-              </Field>
-            </CardContent>
-            <CardFooter>
-              <Button
-                type="submit"
-                disabled={!taskName || !taskColor || newTaskMutation.isPending}
-              >
-                Add Task
-              </Button>
-            </CardFooter>
-          </form>
+        <Card className="h-full min-w-sm">
+          <CardHeader>
+            <CardTitle>Today's Aggregates</CardTitle>
+          </CardHeader>
+          <CardContent className="overflow-y-auto">
+            <ul className="flex flex-col gap-2 p-0">
+              {tasksQuery.data.map((task) => {
+                const totalDuration = timeEntriesQuery.data
+                  ?.filter((entry) => entry.taskId === task.id)
+                  .reduce((acc, entry) => {
+                    const endTime = entry.endTime ? entry.endTime : Date.now()
+                    return acc + (endTime - entry.startTime)
+                  }, 0)
+                return (
+                  <li
+                    key={task.id}
+                    style={{ backgroundColor: task.color || 'black' }}
+                    className="p-2 rounded text-shadow-lg"
+                  >
+                    {task.name}: {formatDuration(totalDuration || 0)}
+                  </li>
+                )
+              })}
+            </ul>
+          </CardContent>
         </Card>
       </div>
       <div className="h-full flex gap-4 overflow-hidden">
@@ -157,32 +222,6 @@ function Home() {
                     : 'In Progress'}
                 </li>
               ))}
-            </ul>
-          </CardContent>
-        </Card>
-        <Card className="h-full min-w-sm">
-          <CardHeader>
-            <CardTitle>Today's Aggregates</CardTitle>
-          </CardHeader>
-          <CardContent className="overflow-y-auto">
-            <ul className="flex flex-col gap-2 p-0">
-              {tasksQuery.data.map((task) => {
-                const totalDuration = timeEntriesQuery.data
-                  ?.filter((entry) => entry.taskId === task.id)
-                  .reduce((acc, entry) => {
-                    const endTime = entry.endTime ? entry.endTime : Date.now()
-                    return acc + (endTime - entry.startTime)
-                  }, 0)
-                return (
-                  <li
-                    key={task.id}
-                    style={{ backgroundColor: task.color || 'black' }}
-                    className="p-2 rounded text-shadow-lg"
-                  >
-                    {task.name}: {formatDuration(totalDuration || 0)}
-                  </li>
-                )
-              })}
             </ul>
           </CardContent>
         </Card>
