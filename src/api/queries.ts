@@ -1,6 +1,7 @@
 import { queryOptions, mutationOptions } from '@tanstack/react-query'
 import { db } from './db'
 import { queryClient } from '#/main'
+import { toast } from 'sonner'
 
 export const getTimeEntriesQueryOptions = (date: Date) => {
   const start = new Date(date)
@@ -72,12 +73,21 @@ export const createTimeEntryMutationOptions = mutationOptions({
 
 export const createTaskMutationOptions = mutationOptions({
   mutationFn: async (body: { name: string; color: string }) => {
+    const existingTask = await db.tasks.where('name').equals(body.name).first()
+    if (existingTask) {
+      throw new Error('Task with this name already exists')
+    }
     await db.tasks.add({
       name: body.name,
       color: body.color,
       createdAt: Date.now(),
     })
     queryClient.invalidateQueries()
+  },
+  onError: (error) => {
+    toast.error(error.message || 'Failed to create task', {
+      position: 'top-center',
+    })
   },
 })
 

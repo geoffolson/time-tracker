@@ -3,6 +3,7 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { routeTree } from './routeTree.gen'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from './components/theme-provider'
+import { Toaster } from 'sonner'
 
 const router = createRouter({
   routeTree,
@@ -25,6 +26,7 @@ if (!rootElement.innerHTML) {
   root.render(
     <ThemeProvider defaultTheme="dark" storageKey="time-tracker-ui-theme">
       <QueryClientProvider client={queryClient}>
+        <Toaster />
         <RouterProvider router={router} />
       </QueryClientProvider>
     </ThemeProvider>,
