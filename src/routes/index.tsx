@@ -24,15 +24,13 @@ import { Input } from '#/components/ui/input'
 
 export const Route = createFileRoute('/')({ component: Home })
 
+const randomColor = () =>
+  `#${Math.floor(Math.random() * 16777215).toString(16)}`
+
 function Home() {
   const newTimeEntryMutation = useMutation(createTimeEntryMutationOptions)
   const timeEntriesQuery = useQuery(getTimeEntriesQueryOptions(new Date()))
   const activeTimeEntryQuery = useQuery(getActiveTimeEntryQueryOptions)
-  activeTimeEntryQuery.data?.taskId &&
-    console.log(
-      'Active time entry for task ID:',
-      activeTimeEntryQuery.data.taskId,
-    )
   const tasksQuery = useSuspenseQuery(getTasksQueryOptions)
   const tasksMap: Record<number, Task> = {}
   tasksQuery.data.forEach((task) => {
@@ -40,7 +38,7 @@ function Home() {
   })
   const newTaskMutation = useMutation(createTaskMutationOptions)
   const [taskName, setTaskName] = useState('')
-  const [taskColor, setTaskColor] = useState('')
+  const [taskColor, setTaskColor] = useState(randomColor)
 
   return (
     <div className="p-2 h-full w-full max-w-4xl flex flex-col gap-4">
@@ -91,6 +89,7 @@ function Home() {
                 placeholder="Task Name"
                 className="p-2 border rounded w-full"
                 onChange={(e) => setTaskName(e.target.value)}
+                value={taskName}
               />
               <FieldDescription>
                 Provide a unique name for the task
@@ -102,6 +101,7 @@ function Home() {
                 type="color"
                 placeholder="Task Color"
                 onChange={(e) => setTaskColor(e.target.value)}
+                value={taskColor}
               />
               <FieldDescription>Select a color for the task</FieldDescription>
             </Field>
@@ -109,9 +109,17 @@ function Home() {
           <CardFooter>
             <Button
               onClick={() =>
-                newTaskMutation.mutate({ name: taskName, color: taskColor })
+                newTaskMutation.mutate(
+                  { name: taskName, color: taskColor },
+                  {
+                    onSuccess: () => {
+                      setTaskName('')
+                      setTaskColor(randomColor())
+                    },
+                  },
+                )
               }
-              disabled={!taskName || !taskColor}
+              disabled={!taskName || !taskColor || newTaskMutation.isPending}
             >
               Add Task
             </Button>
@@ -119,7 +127,7 @@ function Home() {
         </Card>
       </div>
       <div className="h-full flex gap-4 overflow-hidden">
-        <Card className="h-full">
+        <Card className="h-full grow">
           <CardHeader>
             <CardTitle>Today's Time Entries</CardTitle>
           </CardHeader>
