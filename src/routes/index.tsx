@@ -36,6 +36,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '#/components/ui/dialog'
+import { Badge } from '#/components/ui/badge'
 
 export const Route = createFileRoute('/')({ component: Home })
 
@@ -157,11 +158,11 @@ function Home() {
                     className={`flex justify-between p-2 rounded mb-2 cursor-pointer border-3 ${activeTimeEntryQuery.data?.taskId === task.id ? 'border-white' : ''}`}
                     onClick={() => newTimeEntryMutation.mutate(task.id!)}
                   >
-                    <div className="text-shadow-lg">{task.name}</div>
+                    <Badge variant="translucent">{task.name}</Badge>
                     {activeTimeEntryQuery.data?.taskId === task.id && (
-                      <span className="text-sm italic text-shadow-lg">
+                      <Badge variant="translucent" className="text-sm italic">
                         Active
-                      </span>
+                      </Badge>
                     )}
                   </li>
                 ))}
@@ -188,7 +189,9 @@ function Home() {
                     style={{ backgroundColor: task.color || 'black' }}
                     className="p-2 rounded text-shadow-lg"
                   >
-                    {task.name}: {formatDuration(totalDuration || 0)}
+                    <Badge variant="translucent">
+                      {task.name}: {formatDuration(totalDuration || 0)}
+                    </Badge>
                   </li>
                 )
               })}
@@ -211,15 +214,17 @@ function Home() {
                   }}
                   className="p-2 rounded text-shadow-lg"
                 >
-                  {tasksMap[entry.taskId].name || entry.taskId}, Start:{' '}
-                  {new Date(entry.startTime).toLocaleString()}, End:{' '}
-                  {entry.endTime
-                    ? new Date(entry.endTime).toLocaleString()
-                    : 'In Progress'}{' '}
-                  Duration:{' '}
-                  {entry.endTime
-                    ? formatDuration(entry.endTime - entry.startTime)
-                    : 'In Progress'}
+                  <Badge variant="translucent">
+                    {tasksMap[entry.taskId].name || entry.taskId}, Start:{' '}
+                    {new Date(entry.startTime).toLocaleString()}, End:{' '}
+                    {entry.endTime
+                      ? new Date(entry.endTime).toLocaleString()
+                      : 'In Progress'}{' '}
+                    Duration:{' '}
+                    {entry.endTime
+                      ? formatDuration(entry.endTime - entry.startTime)
+                      : 'In Progress'}
+                  </Badge>
                 </li>
               ))}
             </ul>
